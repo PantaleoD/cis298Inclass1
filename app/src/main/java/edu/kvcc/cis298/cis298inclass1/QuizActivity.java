@@ -2,6 +2,7 @@ package edu.kvcc.cis298.cis298inclass1;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,6 +18,8 @@ public class QuizActivity extends AppCompatActivity {
     private Button mNextButton;
     private  TextView mQuestionTextView;
                             // typically this array would be created and stored elsewhere (later!)
+                    // this calls Question constructor many times & creates array of Question objects
+                    // could do elsewhere..will eventually
     private Question[] mQuestionBank = new Question[]{
             new Question(R.string.question_oceans, true),
             new Question(R.string.question_mideast, false),
@@ -27,21 +30,50 @@ public class QuizActivity extends AppCompatActivity {
 
     private  int mCurrentIndex = 0;
 
+    // chpt 3 - adding TAG reference for logging Activities as they occur:
+    private static final String TAG = "QuizActivity";   // final = CONSTANTS & Static string to use for the override methods
+
+    // b/c in 2 places (onCreate and OnClickListener - make a private updateQuestion method to
+    //
+    private void updateQuestion() {
+        int question = mQuestionBank[mCurrentIndex].getTextResId();  // g
+        mQuestionTextView.setText(question);
+    }
+
+private void  checkAnswer(boolean userPressedTrue) {
+    boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+
+    int messageResId = 0;
+
+    if (userPressedTrue == answerIsTrue) {
+        messageResId = R.string.correct_toast;
+    }
+    else
+    {
+        messageResId = R.string.incorrect_toast;
+    }
+ Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+}
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate(Bundle) called");          // ch 3  LOG display w/ onCreate()
         setContentView(R.layout.activity_quiz);
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
-        int question = mQuestionBank[mCurrentIndex].getTextResId();
-        mQuestionTextView.setText(question);
+   //     int question = mQuestionBank[mCurrentIndex].getTextResId();
+   //     mQuestionTextView.setText(question);
 
 
         mTrueButton = (Button) findViewById(R.id.true_button);
        mTrueButton.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
-               Toast.makeText(QuizActivity.this, R.string.incorrect_toast, Toast.LENGTH_SHORT).show();
+   //            Toast.makeText(QuizActivity.this, R.string.incorrect_toast, Toast.LENGTH_SHORT).show();
+
+               checkAnswer(true);
            }
        });
 
@@ -55,11 +87,76 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {   // this doesn't do anything yet... so passing in googles class and overriding what you want
            // now to do something:
-                Toast.makeText(QuizActivity.this, R.string.correct_toast, Toast.LENGTH_SHORT).show();
-                //    method returns object it belongs to so can call another method...show
+  //              Toast.makeText(QuizActivity.this, R.string.correct_toast, Toast.LENGTH_SHORT).show();
+
+                checkAnswer(false);
             }
         } );
+
+
+        // gets refernce to the button and then sets a View.OnClickListener on it... the listener will
+        // increment the index and update the TextView;s text.
+        mNextButton = (Button)  findViewById(R.id.next_button);
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+           public  void onClick(View v) {
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+  //              int question = mQuestionBank[mCurrentIndex].getTextResId();
+  //              mQuestionTextView.setText(question);
+                updateQuestion();               // called at end of onClick(
+            }
+                   });
+// ********************* this is the challengee form end of chpt 2 ********works!
+        mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+
+        mQuestionTextView.setOnClickListener(new View.OnClickListener(){
+            @Override
+                    public void onClick(View v){
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                updateQuestion();
+            }
+        } );
+
+            updateQuestion();               // called at end of OnCreate(    ;
     }
+
+    // ***************** LOG METHODS ADDED (ch 3 pg 59) ******************
+    //          ORDER IS NOT VERY IMPORTANT BUT CALLING SUPER BEFORE LOG IS VERY IMPORTANT
+
+
+    // below are main
+
+     @Override
+    public  void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");   // TAG is constant field defined at top of code
+    }
+
+    @Override                      // USED TO ENSURE THAT  CLASS HAS THE METHOD YOU ARE OVERRIDING
+    public  void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");      // d for debug  (e for erros) etc...
+    }
+
+    @Override
+    public  void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");   // if Log not happy - ALT + ENTER will auto import the log class
+    }
+
+    @Override
+    public  void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+
+    @Override
+    public  void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called");
+    }
+
+    // ************  END OF LOG STATEMENTS *******************
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
